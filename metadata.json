@@ -1,0 +1,7 @@
+{
+  "name": "Tutorado",
+  "description": "Sistema premium de gestão escolar para alunos e tutores com dashboard analítico e acompanhamento pedagógico.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
