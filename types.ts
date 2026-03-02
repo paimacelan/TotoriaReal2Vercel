@@ -78,4 +78,4 @@ export const CLASS_LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
 export const DIMENSIONS = ['Cognitiva', 'Socioemocional', 'Comportamental', 'Pessoal', 'Acadêmica', 'Profissional'];
 
-export const LIVING_OPTIONS = ['Pais', 'Mãe', 'Pai', 'Avós', 'Outros'];
+export const LIVING_OPTIONS = ['Pais', 'Mãe', 'Pai', 'Avós', 'Tio', 'Irmã', 'Abrigo', 'Outros'];

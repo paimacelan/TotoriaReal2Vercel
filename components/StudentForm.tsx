@@ -2,6 +2,86 @@ import React, { useState, useRef } from 'react';
 import { Student, SERIES_OPTIONS, CLASS_LETTERS, LIVING_OPTIONS, User } from '../types';
 import { Camera, Upload, X, Save, FileText, Image as ImageIcon } from 'lucide-react';
 
+// ─── InputField fora do componente pai para evitar remontagem a cada keystroke ───
+interface InputFieldProps {
+  label: string;
+  type?: string;
+  required?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+}
+const InputField: React.FC<InputFieldProps> = ({ label, type = 'text', required = false, value, onChange }) => (
+  <div className="flex flex-col gap-1">
+    <label className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider transition-colors">{label}</label>
+    <input
+      type={type}
+      required={required}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`bg-gray-50 dark:bg-dark-900 border border-gray-200 dark:border-white/10 rounded-lg p-2 text-gray-800 dark:text-gray-200 focus:border-gold-500 outline-none focus:ring-1 focus:ring-gold-500 transition-all${type === 'date' ? ' dark:[color-scheme:dark]' : ''}`}
+    />
+  </div>
+);
+
+// ─── TagInput: múltiplas entradas como chips ───────────────────────────────
+interface TagInputProps {
+  label: string;
+  value: string; // armazenado como itens separados por '|'
+  onChange: (value: string) => void;
+}
+const TagInput: React.FC<TagInputProps> = ({ label, value, onChange }) => {
+  const [draft, setDraft] = React.useState('');
+  const tags = value ? value.split('|').filter(Boolean) : [];
+
+  const addTag = () => {
+    const trimmed = draft.trim();
+    if (!trimmed || tags.includes(trimmed)) return;
+    onChange([...tags, trimmed].join('|'));
+    setDraft('');
+  };
+
+  const removeTag = (idx: number) => {
+    onChange(tags.filter((_, i) => i !== idx).join('|'));
+  };
+
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider transition-colors">{label}</label>
+      {/* chips */}
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-1">
+          {tags.map((tag, i) => (
+            <span key={i} className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gold-500/15 border border-gold-500/30 text-gold-600 dark:text-gold-400 text-xs font-medium">
+              {tag}
+              <button type="button" onClick={() => removeTag(i)} className="ml-0.5 hover:text-red-400 transition-colors leading-none">
+                <X size={11} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      {/* input + botão add */}
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={draft}
+          placeholder="Digite e pressione Enter ou +"
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+          className="flex-1 bg-gray-50 dark:bg-dark-900 border border-gray-200 dark:border-white/10 rounded-lg p-2 text-gray-800 dark:text-gray-200 focus:border-gold-500 outline-none focus:ring-1 focus:ring-gold-500 transition-all text-sm"
+        />
+        <button
+          type="button"
+          onClick={addTag}
+          className="px-3 py-2 rounded-lg bg-gold-500/20 hover:bg-gold-500/30 text-gold-600 dark:text-gold-400 font-bold transition-colors text-sm border border-gold-500/30"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+};
+
 interface StudentFormProps {
   initialData?: Student | null;
   tutors: User[];
@@ -120,18 +200,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
     }
   };
 
-  const InputField = ({ label, field, type = 'text', required = false }: { label: string, field: keyof Student, type?: string, required?: boolean }) => (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wider transition-colors">{label}</label>
-      <input
-        type={type}
-        required={required}
-        value={formData[field] as string}
-        onChange={(e) => handleChange(field, e.target.value)}
-        className="bg-gray-50 dark:bg-dark-900 border border-gray-200 dark:border-white/10 rounded-lg p-2 text-gray-800 dark:text-gray-200 focus:border-gold-500 outline-none focus:ring-1 focus:ring-gold-500 transition-all"
-      />
-    </div>
-  );
+
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -168,7 +237,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
                     ))}
                   </select>
                 </div>
-                <InputField label="Nome Completo" field="name" required />
+                <InputField label="Nome Completo" value={formData.name} onChange={(v) => handleChange('name', v)} required />
 
                 <div className="flex flex-col gap-1">
                   <label className="text-xs text-gray-400 uppercase font-bold tracking-wider">Ano/Série</label>
@@ -190,18 +259,11 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
                   </div>
                 </div>
 
-                <InputField label="Data de Nascimento" field="birthDate" type="date" required />
-                <InputField label="Telefone Aluno" field="phoneStudent" />
-                <InputField label="Telefone Responsável" field="phoneGuardian" />
+                <InputField label="Data de Nascimento" type="date" value={formData.birthDate} onChange={(v) => handleChange('birthDate', v)} required />
+                <InputField label="Telefone Aluno" value={formData.phoneStudent} onChange={(v) => handleChange('phoneStudent', v)} />
+                <InputField label="Telefone Responsável" value={formData.phoneGuardian} onChange={(v) => handleChange('phoneGuardian', v)} />
                 <div className="md:col-span-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs text-gray-400 uppercase font-bold tracking-wider">Escolas Frequentadas</label>
-                    <textarea
-                      value={formData.schoolsAttended}
-                      onChange={(e) => handleChange('schoolsAttended', e.target.value)}
-                      className="bg-dark-900 border border-white/10 rounded-lg p-2 text-gray-200 h-20"
-                    />
-                  </div>
+                  <TagInput label="Escolas Frequentadas" value={formData.schoolsAttended} onChange={(v) => handleChange('schoolsAttended', v)} />
                 </div>
               </div>
             </div>
@@ -211,18 +273,18 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
         return (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <h4 className="md:col-span-3 text-gold-400 font-semibold border-b border-white/10 pb-2 mb-2">Dados do Pai</h4>
-            <InputField label="Nome" field="fatherName" />
-            <InputField label="Idade" field="fatherAge" type="number" />
-            <InputField label="Profissão" field="fatherJob" />
+            <InputField label="Nome" value={formData.fatherName} onChange={(v) => handleChange('fatherName', v)} />
+            <InputField label="Idade" type="number" value={formData.fatherAge} onChange={(v) => handleChange('fatherAge', v)} />
+            <InputField label="Profissão" value={formData.fatherJob} onChange={(v) => handleChange('fatherJob', v)} />
 
             <h4 className="md:col-span-3 text-gold-400 font-semibold border-b border-white/10 pb-2 mb-2 mt-4">Dados da Mãe</h4>
-            <InputField label="Nome" field="motherName" />
-            <InputField label="Idade" field="motherAge" type="number" />
-            <InputField label="Profissão" field="motherJob" />
+            <InputField label="Nome" value={formData.motherName} onChange={(v) => handleChange('motherName', v)} />
+            <InputField label="Idade" type="number" value={formData.motherAge} onChange={(v) => handleChange('motherAge', v)} />
+            <InputField label="Profissão" value={formData.motherJob} onChange={(v) => handleChange('motherJob', v)} />
 
             <h4 className="md:col-span-3 text-gold-400 font-semibold border-b border-white/10 pb-2 mb-2 mt-4">Outros</h4>
             <div className="md:col-span-2">
-              <InputField label="Irmãos (Nome e Idade)" field="siblings" />
+              <InputField label="Irmãos (Nome e Idade)" value={formData.siblings} onChange={(v) => handleChange('siblings', v)} />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-xs text-gray-400 uppercase font-bold tracking-wider">Mora com quem?</label>
@@ -267,7 +329,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
                   <input type="radio" name="hasPet" checked={formData.hasPet} onChange={() => handleChange('hasPet', true)} className="accent-gold-500" /> Sim
                   <input type="radio" name="hasPet" checked={!formData.hasPet} onChange={() => handleChange('hasPet', false)} className="accent-gold-500" /> Não
                 </label>
-                {formData.hasPet && <InputField label="Qual Pet?" field="petDetails" />}
+                {formData.hasPet && <InputField label="Qual Pet?" value={formData.petDetails || ''} onChange={(v) => handleChange('petDetails', v)} />}
               </div>
 
               {/* Course */}
@@ -277,7 +339,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
                   <input type="radio" name="extCourse" checked={formData.coursesExternal} onChange={() => handleChange('coursesExternal', true)} className="accent-gold-500" /> Sim
                   <input type="radio" name="extCourse" checked={!formData.coursesExternal} onChange={() => handleChange('coursesExternal', false)} className="accent-gold-500" /> Não
                 </label>
-                {formData.coursesExternal && <InputField label="Qual Curso?" field="courseDetails" />}
+                {formData.coursesExternal && <InputField label="Qual Curso?" value={formData.courseDetails || ''} onChange={(v) => handleChange('courseDetails', v)} />}
               </div>
 
               {/* Reading */}
@@ -287,7 +349,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
                   <input type="radio" name="reads" checked={formData.likesReading} onChange={() => handleChange('likesReading', true)} className="accent-gold-500" /> Sim
                   <input type="radio" name="reads" checked={!formData.likesReading} onChange={() => handleChange('likesReading', false)} className="accent-gold-500" /> Não
                 </label>
-                {formData.likesReading && <InputField label="Tipo de livro?" field="bookType" />}
+                {formData.likesReading && <InputField label="Tipo de livro?" value={formData.bookType || ''} onChange={(v) => handleChange('bookType', v)} />}
               </div>
 
               {/* Sports */}
@@ -297,17 +359,17 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
                   <input type="radio" name="sports" checked={formData.sports} onChange={() => handleChange('sports', true)} className="accent-gold-500" /> Sim
                   <input type="radio" name="sports" checked={!formData.sports} onChange={() => handleChange('sports', false)} className="accent-gold-500" /> Não
                 </label>
-                {formData.sports && <InputField label="Qual esporte?" field="sportDetails" />}
+                {formData.sports && <InputField label="Qual esporte?" value={formData.sportDetails || ''} onChange={(v) => handleChange('sportDetails', v)} />}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField label="O que faz no lazer" field="leisureActivity" />
-              <InputField label="O que menos gosta de fazer" field="dislikesActivity" />
-              <InputField label="Horário que dorme" field="sleepTime" />
-              <InputField label="Horário que acorda" field="wakeTime" />
+              <InputField label="O que faz no lazer" value={formData.leisureActivity} onChange={(v) => handleChange('leisureActivity', v)} />
+              <InputField label="O que menos gosta de fazer" value={formData.dislikesActivity} onChange={(v) => handleChange('dislikesActivity', v)} />
+              <InputField label="Horário que dorme" value={formData.sleepTime} onChange={(v) => handleChange('sleepTime', v)} />
+              <InputField label="Horário que acorda" value={formData.wakeTime} onChange={(v) => handleChange('wakeTime', v)} />
               <div className="md:col-span-2">
-                <InputField label="Projeto de Vida" field="lifeProject" />
+                <InputField label="Projeto de Vida" value={formData.lifeProject} onChange={(v) => handleChange('lifeProject', v)} />
               </div>
             </div>
           </div>
