@@ -11,28 +11,37 @@ interface LayoutProps {
   onNavigate: (page: string) => void;
 }
 
+// NavItem fora do componente pai — evita remontagem a cada render
+interface NavItemProps {
+  page: string;
+  icon: React.ElementType;
+  label: string;
+  currentPage: string;
+  onNavigate: (page: string) => void;
+  onClose: () => void;
+}
+const NavItem: React.FC<NavItemProps> = ({ page, icon: Icon, label, currentPage, onNavigate, onClose }) => {
+  const isActive = currentPage === page;
+  return (
+    <button
+      onClick={() => { onNavigate(page); onClose(); }}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${isActive
+          ? 'bg-gradient-to-r from-gold-500/20 to-transparent border-l-4 border-gold-500 text-gold-400 font-semibold'
+          : 'text-gray-400 hover:text-gold-200 hover:bg-white/5'
+        }`}
+    >
+      <Icon size={20} className={isActive ? 'text-gold-500 drop-shadow-[0_0_5px_rgba(212,163,43,0.5)]' : ''} />
+      <span>{label}</span>
+    </button>
+  );
+};
+
 export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout, currentPage, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const closeMenu = () => setIsMobileMenuOpen(false);
 
-  const NavItem = ({ page, icon: Icon, label }: { page: string; icon: any; label: string }) => {
-    const isActive = currentPage === page;
-    return (
-      <button
-        onClick={() => {
-          onNavigate(page);
-          setIsMobileMenuOpen(false);
-        }}
-        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${isActive
-          ? 'bg-gradient-to-r from-gold-500/20 to-transparent border-l-4 border-gold-500 text-gold-400 font-semibold'
-          : 'text-gray-400 hover:text-gold-200 hover:bg-white/5'
-          }`}
-      >
-        <Icon size={20} className={isActive ? 'text-gold-500 drop-shadow-[0_0_5px_rgba(212,163,43,0.5)]' : ''} />
-        <span>{label}</span>
-      </button>
-    );
-  };
+  const navProps = { currentPage, onNavigate, onClose: closeMenu };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-950 flex flex-col md:flex-row font-sans text-gray-900 dark:text-gray-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-100 via-gray-50 to-white dark:from-dark-800 dark:via-dark-950 dark:to-dark-950">
@@ -68,15 +77,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout, curren
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <div className="px-4 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">Principal</div>
-          <NavItem page="dashboard" icon={LayoutDashboard} label="Dashboard" />
-          <NavItem page="students" icon={GraduationCap} label="Estudantes" />
-          <NavItem page="attendances" icon={ClipboardList} label="Atendimentos" />
-          <NavItem page="reports" icon={FileText} label="Relatórios" />
+          <NavItem page="dashboard" icon={LayoutDashboard} label="Dashboard" {...navProps} />
+          <NavItem page="students" icon={GraduationCap} label="Estudantes" {...navProps} />
+          <NavItem page="attendances" icon={ClipboardList} label="Atendimentos" {...navProps} />
+          <NavItem page="reports" icon={FileText} label="Relatórios" {...navProps} />
 
           {user.role === 'ADMIN' && (
             <>
               <div className="px-4 py-2 mt-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Administração</div>
-              <NavItem page="tutors" icon={Users} label="Equipe" />
+              <NavItem page="tutors" icon={Users} label="Equipe" {...navProps} />
             </>
           )}
         </nav>

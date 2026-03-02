@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Student, SERIES_OPTIONS, CLASS_LETTERS, LIVING_OPTIONS, User } from '../types';
-import { Camera, Upload, X, Save, FileText, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Save, FileText } from 'lucide-react';
+import { PhotoCapture } from './PhotoCapture';
 
 // ─── InputField fora do componente pai para evitar remontagem a cada keystroke ───
 interface InputFieldProps {
@@ -143,15 +144,6 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
     handleChange('series', `${year} ${letter}`);
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        handleChange('photo', ev.target?.result as string);
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  };
 
   const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -209,18 +201,11 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
           <div className="space-y-6">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-shrink-0 flex flex-col items-center gap-3">
-                <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-gold-500/30 relative group bg-black">
-                  {formData.photo ? (
-                    <img src={formData.photo} alt="Student" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-500"><Camera /></div>
-                  )}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                    <Camera className="text-white" />
-                  </div>
-                </div>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs text-gold-400 hover:text-gold-300 underline">Alterar Foto</button>
+                <PhotoCapture
+                  shape="rect"
+                  photo={formData.photo}
+                  onChange={(v) => handleChange('photo', v)}
+                />
               </div>
 
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -453,8 +438,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, tutors, o
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="bg-white dark:bg-dark-900 border border-gray-200 dark:border-white/10 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="bg-white dark:bg-dark-900 border border-gray-200 dark:border-white/10 w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col my-2 sm:my-4" style={{ maxHeight: 'calc(100dvh - 1rem)' }}>
         {/* Header */}
         <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-gradient-to-r dark:from-dark-900 dark:to-dark-800">
           <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gold-600 to-gold-500 dark:from-gold-300 dark:to-gold-500">

@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { getUserById } from '../services/dataService';
 import { User, Student, Role } from '../types';
-import { Plus, Edit, Trash2, Shield, User as UserIcon, X, Camera, Save, Users, Printer } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, User as UserIcon, X, Save, Users, Printer } from 'lucide-react';
+import { PhotoCapture } from './PhotoCapture';
 
 interface TutorManagerProps {
   users: User[];
@@ -21,7 +22,6 @@ export const TutorManager: React.FC<TutorManagerProps> = ({ users, students, cur
     photo: '',
     password: ''
   });
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
 
@@ -48,15 +48,7 @@ export const TutorManager: React.FC<TutorManagerProps> = ({ users, students, cur
     setIsModalOpen(true);
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setFormData(prev => ({ ...prev, photo: ev.target?.result as string }));
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  };
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -311,7 +303,7 @@ export const TutorManager: React.FC<TutorManagerProps> = ({ users, students, cur
       {/* ── Modal: Editar/Criar Usuário ──────────────────────────────────── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-dark-900 border border-gray-200 dark:border-white/10 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+          <div className="bg-white dark:bg-dark-900 border border-gray-200 dark:border-white/10 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ maxHeight: 'calc(100dvh - 2rem)', overflowY: 'auto' }}>
             <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-gradient-to-r dark:from-dark-900 dark:to-dark-800">
               <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                 {formData.id ? 'Editar Usuário' : 'Novo Usuário'}
@@ -321,19 +313,11 @@ export const TutorManager: React.FC<TutorManagerProps> = ({ users, students, cur
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="flex flex-col items-center mb-6">
-                {/* ... (Photo Input) ... */}
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-dashed border-gray-300 dark:border-white/20 relative group bg-gray-100 dark:bg-black cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                  {formData.photo ? (
-                    <img src={formData.photo} alt="Preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500"><Camera /></div>
-                  )}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <Camera className="text-white" />
-                  </div>
-                </div>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handlePhotoUpload} />
-                <span className="text-xs text-gold-600 dark:text-gold-400 mt-2 cursor-pointer hover:underline" onClick={() => fileInputRef.current?.click()}>Alterar foto</span>
+                <PhotoCapture
+                  shape="circle"
+                  photo={formData.photo}
+                  onChange={(v) => setFormData(prev => ({ ...prev, photo: v }))}
+                />
               </div>
 
               <div>

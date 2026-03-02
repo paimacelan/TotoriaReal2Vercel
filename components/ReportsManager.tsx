@@ -256,7 +256,7 @@ export const ReportsManager: React.FC<ReportsManagerProps> = ({ students, tutors
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-100px)]">
+    <div className="flex flex-col gap-4 h-[calc(100dvh-100px)]">
       {/* Sidebar Controls - Hidden on Print */}
       <div className="w-full md:w-64 flex-shrink-0 space-y-4 no-print">
         <div className="glass-panel p-4 rounded-xl bg-white dark:bg-transparent shadow-sm dark:shadow-none border border-gray-200 dark:border-white/5">
