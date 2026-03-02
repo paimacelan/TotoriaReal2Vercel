@@ -71,12 +71,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, onLogout, curren
           <NavItem page="dashboard" icon={LayoutDashboard} label="Dashboard" />
           <NavItem page="students" icon={GraduationCap} label="Estudantes" />
           <NavItem page="attendances" icon={ClipboardList} label="Atendimentos" />
+          <NavItem page="reports" icon={FileText} label="Relatórios" />
 
           {user.role === 'ADMIN' && (
             <>
               <div className="px-4 py-2 mt-6 text-xs font-semibold text-gray-600 uppercase tracking-wider">Administração</div>
               <NavItem page="tutors" icon={Users} label="Equipe" />
-              <NavItem page="reports" icon={FileText} label="Relatórios" />
             </>
           )}
         </nav>
